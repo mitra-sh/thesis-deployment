@@ -1,0 +1,49 @@
+#ui.host: 0.0.0.0
+ui.port: 8050
+storm.zookeeper.servers:
+  - "zookeeper"
+nimbus.seeds: 
+  - "nimbus"
+supervisor.slots.ports:
+   - 6700
+   - 6701
+   - 6702
+#   - 6703
+nimbus.thrift.port: 6627
+storm.scheduler: "org.apache.storm.scheduler.resource.ResourceAwareScheduler"
+#topology.executor.receive.buffer.size: 1
+#topology.executor.send.buffer.size: 1
+#topology.executor.transfer.buffer.size: 1
+#topology.backpressure.enable: false
+
+#topology.workers: 10
+### storm.* configs are general configurations
+# the local dir is where jars are kept
+storm.local.dir: "storm-local"
+#worker.heap.memory.mb: 1024
+#worker.childopts: "-Xmx3g -Xms2g"
+#topology.worker.max.heap.size.mb: 2048
+#topology.scheduler.strategy: "org.apache.storm.scheduler.constraint.ConstraintSolverStrategy"
+topology.component.resources.onheap.memory.mb: 2048
+
+  
+# Worker Settings
+worker.heap.memory.mb: 4098
+#worker.childopts: "-Xmx%HEAP-MEM%m -Xms%HEAP-MEM%m -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails"
+worker.childopts: "-Xmx%HEAP-MEM%m -Xms%HEAP-MEM%m -XX:+UseG1GC"
+
+# Nimbus Settings
+nimbus.childopts: "-Xmx4096m -Xms4096m -XX:+UseG1GC"
+
+# Supervisor Settings
+supervisor.childopts: "-Xmx8192m -Xms4096m -XX:+UseG1GC"
+topology.worker.max.heap.size.mb: 4096.0
+
+
+# too much log
+#logging:
+#  loggers:
+#    org.apache.storm: DEBUG
+supervisor.scheduler.meta:
+  nodeName: ""
+

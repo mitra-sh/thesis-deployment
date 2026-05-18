@@ -1,0 +1,144 @@
+version: '3.9'
+
+services:  
+  zookeeper:
+    image: zookeeper
+    hostname: zookeeper
+    restart: always
+    deploy:
+      replicas: 1  # Only one Zookeeper instance is needed
+      placement:
+        constraints:
+          - node.role == manager  # Run Zookeeper on the manager node
+    networks:
+      - storm-net  
+  nimbus:
+    image: mitrash/custom-storm:last
+    hostname: nimbus
+    environment:
+      - STORM_ROLE=nimbus
+      - NODE_HOSTNAME={{.Node.Hostname}}
+#    entrypoint: ["storm", "nimbus"]
+    command: ["/entrypoint.sh"] 
+#    command: ["storm", "nimbus"]
+    depends_on:
+      - zookeeper
+      - mosquitto
+    restart: always
+    ports:
+      - 6627:6627
+#    volumes:
+#      - /home/as00750/storm-net/storm.yaml:/apache-storm-2.7.0/conf/storm.yaml
+#    volumes:
+#      - /home/as00750/ShuffleTesting-2.4.0-exclude-storm.jar:/apache-storm-2.6.2/ShuffleTesting-2.4.0-exclude-storm.jar
+    deploy:
+      replicas: 1  # Only one Nimbus instance is needed
+      placement:
+        constraints:
+          - node.role == manager  # Run Nimbus on the manager node
+    networks:
+      - storm-net
+  supervisor:
+    image: mitrash/custom-storm:last
+    hostname: "{{.Service.Name}}-{{.Task.Slot}}"
+    environment:
+      - STORM_ROLE=supervisor
+      #- SUPERVISOR_META_NODE={{.Node.Hostname}}
+      - SUPERVISOR_NAME={{.Service.Name}}-{{.Task.Slot}}
+      - NODE_HOSTNAME={{.Node.Hostname}}
+      - TASK_ID={{.Task.ID}}
+      - CONTAINER_NAME={{.Service.Name}}.{{.Task.Slot}}.{{.Task.ID}}
+#      - JAVA_OPTS=-Xms1024m -Xmx2048m
+  # Set Java heap size to 2GB
+#      - JAVA_TOOL_OPTIONS="-Xmx2g -Xms2g"  # Set Java heap size to 2GB using JAVA_TOOL_OPTIONS
+
+    command: ["/entrypoint.sh"]
+
+    volumes:
+      - /home/as00750/images:/images
+      - /var/run/docker.sock:/var/run/docker.sock  
+#      - /home/as00750/storm-net/storm.yaml:/apache-storm-2.7.0/conf/storm.yaml
+#      - /home/as00750/dynamicIPExtractor.sh:/apache-storm-2.6.2/dynamicIPExtractor.sh
+#    command: storm supervisor -c worker.heap.memory.mb=2048 -c worker.childopts=-Xmx2048m
+
+#    command: storm supervisor
+#    command: storm supervisor -c worker.heap.memory.mb=2048 -c worker.childopts="-Xms1024m -Xmx2048m"
+#    command: ["/entrypoint.sh"]
+#    command: ["/apache-storm-2.7.0/entrypoint.sh"]
+## the below works
+#    command: storm supervisor 
+
+    depends_on:
+      - nimbus
+      - zookeeper
+
+    deploy:
+      mode: global
+#      replicas: 10  # Deploy 10 replicas of the supervisor
+      placement:
+        constraints:
+          - node.role == worker  # Run supervisors on worker nodes
+#      labels:
+#          - storm.node.role=supervisor1
+#        preferences:
+#          - spread: node.hostname 
+      resources:
+        limits:
+          cpus: '2'
+#          memory: 3g  #
+    networks:
+      - storm-net    
+  mosquitto:
+    image: eclipse-mosquitto
+    hostname: mosquitto
+    volumes:
+      - ./config:/mosquitto/config 
+    deploy:
+      replicas: 1  # Only one Nimbus instance is needed
+      placement:
+        constraints:
+          - node.role == manager  # Run Nimbus on the manager node
+    ports:
+      - 1883:1883
+      - 9001:9001
+    networks:
+      - storm-net
+  ui:
+    image: mitrash/custom-storm:last
+    command: storm ui
+    ports:
+      - 8050:8050
+    deploy:
+      replicas: 1  # Only one Nimbus instance is needed
+      placement:
+        constraints:
+          - node.role == manager  # Run Nimbus on the manager node
+    environment:
+      - NIMBUS_SEEDS=nimbus
+      - STORM_ROLE=ui
+
+    depends_on:
+      - nimbus
+#    volumes:
+#      - ./storm.yaml:/conf/storm.yaml  # Map storm.yaml from host to container
+    networks:
+      - storm-net
+  nginx-docker-proxy:
+    image: nginx
+    hostname: nginx-docker-proxy
+    deploy:
+      replicas: 1  # Only one Nimbus instance is needed
+      placement:
+        constraints:
+          - node.role == manager  # Run Nimbus on the manager node
+    volumes:
+    #  - /var/run/docker.sock:/var/run/docker.sock
+      - ./nginx-docker.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 80:80
+    restart: unless-stopped
+
+networks:
+  storm-net:
+    driver: overlay
+

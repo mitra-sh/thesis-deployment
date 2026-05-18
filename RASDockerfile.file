@@ -1,0 +1,42 @@
+FROM storm:2.7.0
+#just to test
+#RUN  apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
+
+# Install required tools
+RUN apt-get update && apt-get install -y \
+    dnsutils \       
+    iproute2 \       
+    iputils-ping && \ 
+    rm -rf /var/lib/apt/lists/*
+
+
+COPY RASstorm.yaml /conf/storm.yaml
+
+# Copy the entrypoint script
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod 777 /entrypoint.sh
+
+COPY ./ShuffleTesting-2.7.0-exclude-storm.jar /apache-storm-2.7.0/ShuffleTesting-2.7.0-exclude-storm.jar
+# Add OpenCV Java JAR file
+# Make sure the version matches the installed native libraries
+
+RUN mkdir -p /images && chmod 777 /images
+
+WORKDIR /apache-storm-2.7.0
+COPY ./dynamicIPExtractor.sh .
+
+COPY ./tc_rules.sh /apache-storm-2.7.0/tc_rules.sh
+RUN chmod 777 /apache-storm-2.7.0/tc_rules.sh
+
+COPY ./latencyFile.csv /apache-storm-2.7.0/latencyFile.csv
+RUN chmod 777 /apache-storm-2.7.0/latencyFile.csv
+
+COPY nodes_ips.txt /apache-storm-2.7.0/nodes_ips.txt
+RUN chmod 777 /apache-storm-2.7.0/nodes_ips.txt
+
+EXPOSE 8050
+EXPOSE 6627
+EXPOSE 1883
+EXPOSE 9001
+
+ENTRYPOINT ["/entrypoint.sh"]

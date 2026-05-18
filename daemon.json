@@ -1,0 +1,5 @@
+{
+  #"default-capabilities": ["NET_ADMIN"]
+  "hosts": ["tcp://0.0.0.0:2376", "unix:///var/run/docker.sock"]
+}
+

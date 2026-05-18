@@ -1,0 +1,51 @@
+FROM storm:2.7.0
+
+#RUN apt-get update && \
+#    apt-get install -y --no-install-recommends dnsutils iproute2 iputils-ping && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/* && \
+#    mkdir -p /images && \
+#    chmod 777 /images
+RUN sed -i 's/ports.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list && \
+    apt-get update --fix-missing && \
+    apt-get install -y --no-install-recommends dnsutils iproute2 iputils-ping && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /images && \
+    chmod 777 /images
+
+COPY customized-storm.yaml /conf/storm.yaml
+
+#RUN python3 -m venv /opt/venv
+#ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy the entrypoint script
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod 777 /entrypoint.sh
+#RUN pip install tcconfig
+
+
+COPY ./ShuffleTesting-2.7.0-exclude-storm.jar /apache-storm-2.7.0/ShuffleTesting-2.7.0-exclude-storm.jar
+
+
+#RUN mkdir -p /images && chmod 777 /images
+
+WORKDIR /apache-storm-2.7.0
+COPY ./dynamicIPExtractor.sh .
+
+COPY ./latencyFile.csv /apache-storm-2.7.0/latencyFile.csv
+RUN chmod 777 /apache-storm-2.7.0/latencyFile.csv
+
+COPY nodes_ips.txt /apache-storm-2.7.0/nodes_ips.txt
+RUN chmod 777 /apache-storm-2.7.0/nodes_ips.txt
+
+COPY ./edgeDeviceBandwidthInfo.csv /apache-storm-2.7.0/edgeDeviceBandwidthInfo.csv
+RUN chmod 777 /apache-storm-2.7.0/edgeDeviceBandwidthInfo.csv
+
+
+EXPOSE 8050
+EXPOSE 6627
+EXPOSE 1883
+EXPOSE 9001
+
+ENTRYPOINT ["/entrypoint.sh"]

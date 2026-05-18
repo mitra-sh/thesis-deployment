@@ -1,0 +1,42 @@
+ui.port: 8050
+storm.zookeeper.servers:
+  - "zookeeper"
+nimbus.seeds: 
+  - "nimbus"
+
+#supervisor.childopts: "-Xmx1024m -Xms512m -XX:+UseG1GC"
+#ui.childopts: "-Xmx1024m -Xms512m -XX:+UseG1GC"
+
+storm.scheduler.display.resource: false
+# Increase time between scheduler runs (default is 10)
+nimbus.monitor.freq.secs: 100
+
+# Increase supervisor heartbeat timeout to avoid false failures
+#supervisor.heartbeat.frequency.secs: 120
+#nimbus.supervisor.timeout.secs: 180
+
+# Increase worker heartbeat timeout
+#supervisor.worker.timeout.secs: 180
+#nimbus.task.timeout.secs: 180
+#for the the last Experiment that shows scalability
+#topology.executor.receive.buffer.size: 16384
+#topology.executor.send.buffer.size: 16384
+#topology.max.spout.pending: 3000
+
+
+
+
+nimbus.thrift.port: 6627
+storm.scheduler: "streamProcessor.scheduling.CustomScheduler"
+
+storm.zookeeper.session.timeout: 60000  # ets timeout to 30 seconds (30000ms)
+
+storm.local.dir: "storm-local"
+#topology.component.resources.onheap.memory.mb: 2048
+
+
+
+#nimbus.childopts: "-Xmx2048m -Xms1024m -XX:+UseG1GC"
+supervisor.scheduler.meta:
+  nodeName: ""
+
