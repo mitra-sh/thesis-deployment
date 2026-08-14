@@ -1,4 +1,4 @@
-This project contains the deployment and network-simulation setup used to run the experiments.
+This project contains the deployment and network-simulation setup used to run the experiments, across a 21-VM Docker Swarm cluster.
 
 It builds a simulated network across the Docker Swarm nodes hosting the Storm pipeline, using Linux traffic control (tc/netem) to apply configurable latency and bandwidth thresholds between nodes, based on values defined in latencyFile.csv and edgeDeviceBandwidthInfo.csv.
 
