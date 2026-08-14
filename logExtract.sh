@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the user and password
-USER="as00750"
-PASSWORD="ChangeMeNow"
+USER=" "
+PASSWORD=" "
 
 # Create a directory to store logs
 mkdir -p supervisor_logs
